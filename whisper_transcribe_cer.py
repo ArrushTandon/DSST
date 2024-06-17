@@ -6,39 +6,39 @@ import librosa
 
 
 def transcribe_audio(file_path, model):
-    audio, sr = librosa.load(file_path, sr=None)
-    audio = whisper.pad_or_trim(audio)
-    mel = whisper.log_mel_spectrogram(audio).to(model.device)
-    options = whisper.DecodingOptions(fp16=False)
-    result = whisper.decode(model, mel, options)
+    audio,sr= librosa.load(file_path, sr=None)
+    audio= whisper.pad_or_trim(audio)
+    mel= whisper.log_mel_spectrogram(audio).to(model.device)
+    options= whisper.DecodingOptions(fp16=False)
+    result= whisper.decode(model, mel, options)
     return result.text
 
 
-def calculate_cer(transcription, ground_truth):
-    transcription = transcription.lower()
+def calculate_cer(transcript, ground_truth):
+    transcript = transcript.lower()
     ground_truth = ground_truth.lower()
-    return Levenshtein.distance(transcription, ground_truth) / len(ground_truth)
+    return Levenshtein.distance(transcript, ground_truth) / len(ground_truth)
 
 
 def process_subdirectory(subdirectory_path, model, parent_directory, inner_subdirectory):
-    aggregated_transcription = ""
+    aggregated_transcript = ""
     cer_results = []
     for root, dirs, files in os.walk(subdirectory_path):
         for file_name in files:
             if file_name.endswith(('.mp3', '.wav', '.m4a', '.flac')):
                 file_path = os.path.join(root, file_name)
-                transcription = transcribe_audio(file_path, model)
+                transcript = transcribe_audio(file_path, model)
                 file_id = os.path.splitext(file_name)[0]
-                aggregated_transcription += f"{file_id} {transcription}\n"
+                aggregated_transcript += f"{file_id} {transcript}\n"
     subdirectory_name = os.path.basename(subdirectory_path)
-    aggregated_transcription_file_path = os.path.join(subdirectory_path, f"{parent_directory}-{subdirectory_name}.trans")
-    with open(aggregated_transcription_file_path, "w", encoding="utf-8") as f:
-        f.write(aggregated_transcription)
+    aggregated_transcript_file_path = os.path.join(subdirectory_path, f"{parent_directory}-{subdirectory_name}.trans")
+    with open(aggregated_transcript_file_path, "w", encoding="utf-8") as f:
+        f.write(aggregated_transcript)
     ground_truth_file_path = os.path.join(subdirectory_path, f"{parent_directory}-{subdirectory_name}.trans")
     if os.path.exists(ground_truth_file_path):
         with open(ground_truth_file_path, "r", encoding="latin-1") as f:
             ground_truth = f.read().strip()
-        cer = calculate_cer(aggregated_transcription, ground_truth)
+        cer = calculate_cer(aggregated_transcript, ground_truth)
         cer_results.append(cer)
     else:
         print(f"Ground truth file {ground_truth_file_path} not found for {subdirectory_name}")
