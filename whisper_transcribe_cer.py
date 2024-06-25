@@ -1,28 +1,27 @@
-import whisper
 import os
+import whisper
 import Levenshtein
 import csv
 import librosa
 
 
-def transcribe_audio(file_path, model):
-    # Transcribe the audio file without detailed console output
-    audio, sr = librosa.load(file_path, sr=None)
-    audio = whisper.pad_or_trim(audio)
-    mel = whisper.log_mel_spectrogram(audio).to(model.device)
+def voice_transcription(file_path, model): #transcribe the audio files
+    voice, sr = librosa.load(file_path, sr=None)
+    voice = whisper.pad_or_trim(voice)
+    mel = whisper.log_mel_spectrogram(voice).to(model.device)
     options = whisper.DecodingOptions(fp16=False)
     result = whisper.decode(model, mel, options)
     return result.text
 
 
-def calculate_cer(transcription, ground_truth):
+def solving_cer(transcription, truth_file):
     # Convert both transcriptions and ground truth to lower case
     transcription = transcription.lower()
-    ground_truth = ground_truth.lower()
-    return Levenshtein.distance(transcription, ground_truth) / len(ground_truth)
+    truth_file = truth_file.lower()
+    return Levenshtein.distance(transcription, truth_file) / len(truth_file)
 
 
-def process_subdirectory(subdirectory_path, model, parent_directory, inner_subdirectory):
+def extracting_directories(subdirectory_path, model, parent_directory, inner_subdirectory):
     aggregated_transcription = ""
     cer_results = []
 
@@ -30,7 +29,7 @@ def process_subdirectory(subdirectory_path, model, parent_directory, inner_subdi
         for file_name in files:
             if file_name.endswith(('.mp3', '.wav', '.m4a', '.flac')):
                 file_path = os.path.join(root, file_name)
-                transcription = transcribe_audio(file_path, model)
+                transcription = voice_transcription(file_path, model)
 
                 # Append the transcription to the aggregated transcription
                 file_id = os.path.splitext(file_name)[0]
@@ -50,7 +49,7 @@ def process_subdirectory(subdirectory_path, model, parent_directory, inner_subdi
             ground_truth = f.read().strip()
 
         # Calculate CER
-        cer = calculate_cer(aggregated_transcription, ground_truth)
+        cer = solving_cer(aggregated_transcription, ground_truth)
 
         # Append subdirectory and CER result to the list
         cer_results.append(cer)
@@ -76,7 +75,7 @@ if __name__ == "__main__":
                 inner_subdirectory_path = os.path.join(subdirectory_path, inner_subdirectory)
                 if os.path.isdir(inner_subdirectory_path):
                     print(f"Processing Sub-Directory: {inner_subdirectory}")
-                    cer_results = process_subdirectory(inner_subdirectory_path, model, subdirectory, inner_subdirectory)
+                    cer_results = extracting_directories(inner_subdirectory_path, model, subdirectory, inner_subdirectory)
                     directory_cer_results.extend(cer_results)
 
             if directory_cer_results:
