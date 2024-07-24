@@ -115,7 +115,7 @@ if __name__ == "__main__":
                 "CER: ":cer,
                 "Commands ":commands
             }
-    with open('results.json','w') as json_file:
+    with open('Robot_Instruction_results.json','w') as json_file:
         json.dump(results,json_file,indent=4)
 
     print("Transcription, command extraction, and CER calculation completed.")
