@@ -43,7 +43,7 @@ def extracting_files(voice_folder, truth_folder, model):
 if __name__ == "__main__":
     model = whisper.load_model("base") #using the whisper model
     voice_files_folder = r"C:\Users\arrus\OneDrive\Desktop\nptel\wav"
-    truth_file_folder = r"C:\Users\arrus\OneDrive\Desktop\nptel\original_txt"   dffcvc
+    truth_file_folder = r"C:\Users\arrus\OneDrive\Desktop\nptel\original_txt"
     all_cer_results = extracting_files(voice_files_folder, truth_file_folder, model)
     cer_output_file = r"C:\Users\arrus\OneDrive\Desktop\cer_results.csv" #results file path
     with open(cer_output_file, "w", newline="", encoding="utf-8") as csvfile:
